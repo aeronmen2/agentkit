@@ -147,3 +147,6 @@ minio
 
 # application specific
 backend/app/app/tool_constants/sql_tool_db_info.json
+
+# Node_modules
+node_modules/

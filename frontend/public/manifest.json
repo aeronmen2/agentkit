@@ -1,0 +1,24 @@
+{
+    "name": "AgentKit",
+    "short_name": "AgentKit",
+    "description": "Une application LangChain pour construire des agents IA",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "icons": [
+      {
+        "src": "/icons/icon1.png",
+        "sizes": "2160x2160",
+        "type": "image/png",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "/icons/icon2.png",
+        "sizes": "2160x2160",
+        "type": "image/png",
+        "purpose": "any maskable"
+      }
+    ]
+  }
+  
