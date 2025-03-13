@@ -34,49 +34,56 @@ export interface ActionItem {
 
 export function buildSectionTree(list: ListItem[], expanded: boolean = false): TreeItemData<ListItem>[] {
   /*
-    Function to build a tree based on the section numbers (e.g. 1.1, 1.1.2, 1.1.3, 1.2, 2, etc.).
-    Assumes numbers to be unique per section, otherwise overwrites.
+    Optimized function to build a tree based on section numbers (e.g. 1.1, 1.1.2, etc.)
+    Uses Map for faster lookups and reduces parent searching complexity
   */
-  const roots: Record<string, TreeItemData<ListItem>> = {}
-  const allNodes: Record<string, TreeItemData<ListItem>> = {}
+  const allNodes = new Map<string, TreeItemData<ListItem>>()
+  const roots: TreeItemData<ListItem>[] = []
 
-  // Iterate over the list to create nodes and build parent-child relationships
-  list.forEach((item) => {
-    const newNode = {
-      id: item.id!,
+  // First pass: create all nodes
+  for (const item of list) {
+    const newNode: TreeItemData<ListItem> = {
+      id: item.id,
       title: expanded ? `${item.number} ${item.title}` : item.number!,
       status: item.dmetadata?.["page"] ? `${item.dmetadata?.["page"]}` : undefined,
       data: item,
+      children: [],
     }
-    // Create/Overwrite node
-    allNodes[item.number!] = newNode
 
-    // For root node, add it directly to roots
+    allNodes.set(item.number!, newNode)
+  }
+
+  // Second pass: build parent-child relationships
+  for (const item of list) {
+    const node = allNodes.get(item.number!)
+
+    // For root nodes (no dots)
     if (!item.number!.includes(".")) {
-      roots[item.number!] = newNode
-      return
+      roots.push(node!)
+      continue
     }
 
-    // If not a root node, find the closest existing parent and add the node to parent's children
-    // Start with direct parent and if not found, go one level higher, until a parent or root is found
-    let parentNumber = item.number!
-    let parentNode
-
-    do {
-      parentNumber = parentNumber.substring(0, parentNumber.lastIndexOf("."))
-      parentNode = allNodes[parentNumber]
-    } while (!parentNode && parentNumber.includes("."))
+    // Find direct parent by removing the last segment
+    const lastDotIndex = item.number!.lastIndexOf(".")
+    const parentNumber = item.number!.substring(0, lastDotIndex)
+    const parentNode = allNodes.get(parentNumber)
 
     if (parentNode) {
-      if (!parentNode.children) parentNode.children = []
-      parentNode.children.push(newNode)
+      parentNode.children!.push(node!)
     } else {
-      // If no parent was found through the loop it should be a root
-      roots[parentNumber] = newNode
+      // If parent not found, treat as root
+      roots.push(node!)
     }
-  })
+  }
 
-  return Object.values(roots)
+  // Clean up empty children arrays
+  for (const [_, node] of allNodes) {
+    if (node.children?.length === 0) {
+      delete node.children
+    }
+  }
+
+  return roots
 }
 
 const supportedIcons = {
@@ -94,10 +101,11 @@ const supportedIcons = {
 }
 
 export function buildActionTree(list: ActionItem[]): TreeItemData<ActionItem>[] {
-  const roots: Record<string, TreeItemData<ActionItem>> = {}
-  const allNodes: Record<string, TreeItemData<ActionItem>> = {}
+  const allNodes = new Map<string, TreeItemData<ActionItem>>()
+  const roots: TreeItemData<ActionItem>[] = []
 
-  list.forEach((item) => {
+  // Create all nodes first
+  for (const item of list) {
     const icon = item.icon || "BiQuestionMark"
     const IconComponent = supportedIcons[icon as keyof typeof supportedIcons] || Icon.BiErrorAlt
 
@@ -110,28 +118,42 @@ export function buildActionTree(list: ActionItem[]): TreeItemData<ActionItem>[] 
       status = <Icon.AiOutlineStop />
     }
 
-    const newNode = {
-      id: item.id!,
+    const newNode: TreeItemData<ActionItem> = {
+      id: item.id,
       title: item.data || "Unknown action",
       icon: <IconComponent />,
-      status: status,
+      status,
       data: item,
-    } as TreeItemData<ActionItem>
+      children: [],
+    }
 
-    allNodes[item.id!] = newNode
-  })
+    allNodes.set(item.id, newNode)
+  }
 
-  Object.values(allNodes).forEach((item) => {
-    if (!item.data.parent_id) {
-      roots[item.id!] = item
+  // Build parent-child relationships in a single pass
+  for (const item of list) {
+    const node = allNodes.get(item.id)
+
+    if (!item.parent_id) {
+      // No parent, this is a root node
+      roots.push(node!)
     } else {
-      const parent = allNodes[item.data.parent_id]
+      const parent = allNodes.get(item.parent_id)
       if (parent) {
-        if (!parent.children) parent.children = []
-        parent.children.push(item)
+        parent.children!.push(node!)
+      } else {
+        // Parent not found, treat as root
+        roots.push(node!)
       }
     }
-  })
+  }
 
-  return Object.values(roots)
+  // Clean up empty children arrays
+  for (const [_, node] of allNodes) {
+    if (node.children?.length === 0) {
+      delete node.children
+    }
+  }
+
+  return roots
 }
