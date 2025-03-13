@@ -87,7 +87,7 @@ const SideDrawer = () => {
       )}
       onToggle={(isOpen) => queryStore.toggleDrawer(isOpen)}
     >
-      <div className="flex w-screen max-w-full flex-col items-start justify-start p-4 sm:w-[calc(60vw)] lg:w-[calc(50vw)] 2xl:w-[calc(40vw)] dark:text-gray-300">
+      <div className="flex w-screen max-w-full flex-col items-start justify-start p-4 dark:text-gray-300 sm:w-[calc(60vw)] lg:w-[calc(50vw)] 2xl:w-[calc(40vw)]">
         <h2 className="pb-cmd text-fluid-cmd font-bold">Execute SQL</h2>
         <>
           <div className="mt-4 flex w-full flex-row items-center justify-start">
