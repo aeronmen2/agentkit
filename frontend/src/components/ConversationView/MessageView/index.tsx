@@ -97,7 +97,7 @@ const MessageView = (props: Props) => {
 
   return (
     <div
-      className={`group mx-auto flex w-full max-w-full flex-row items-start justify-start bg-neutral px-8 py-4 xl:px-16 dark:bg-base-300 ${
+      className={`group mx-auto flex w-full max-w-full flex-row items-start justify-start bg-neutral px-8 py-4 dark:bg-base-300 xl:px-16 ${
         isCurrentUser ? "justify-start !bg-base-100 pb-8 pt-6" : ""
       }`}
       data-cy={CONVERSATION_VIEW_SELECTORS.filledChatMessageAreaWrapper}

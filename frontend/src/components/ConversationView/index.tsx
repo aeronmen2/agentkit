@@ -232,7 +232,7 @@ const ConversationView = () => {
         </div>
       </div>
 
-      <div className="absolute bottom-0 flex w-full flex-row items-center justify-center gap-csm !bg-neutral px-8 py-csm xl:px-16 dark:!bg-base-200">
+      <div className="absolute bottom-0 flex w-full flex-row items-center justify-center gap-csm !bg-neutral px-8 py-csm dark:!bg-base-200 xl:px-16">
         <ClearConversationButton />
         <MessageTextarea disabled={lastMessage?.status === "LOADING"} sendMessage={sendMessageToCurrentConversation} />
         <CancelMessageButton lastMessage={lastMessage} />

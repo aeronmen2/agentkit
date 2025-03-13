@@ -1,14 +1,14 @@
-const dateFormatter = new Intl.DateTimeFormat("en-US");
+const dateFormatter = new Intl.DateTimeFormat("en-US")
 
 export const formatDate = (dateString: string) => {
   if (!dateString) {
-    return "";
+    return ""
   }
 
-  const date = new Date(dateString);
-  return dateFormatter.format(date);
-};
+  const date = new Date(dateString)
+  return dateFormatter.format(date)
+}
 
 export const serializeDate = (date: Date) => {
-  return date.toISOString();
-};
+  return date.toISOString()
+}
