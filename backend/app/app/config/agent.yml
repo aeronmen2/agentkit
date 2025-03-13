@@ -1,8 +1,8 @@
 ---
 tools_library: !include tools.yml
 common: # settings shared by agent and all tools (can be overwritten by passing explicitly to constructors)
-  llm: 'gpt-4'
-  fast_llm: 'gpt-3.5-turbo'
+  llm: "mistral"
+  fast_llm: "mistral"
   fast_llm_token_limit: 2500
   max_token_length: 4000
 tools: # list of all tools available for the agent
@@ -16,38 +16,38 @@ tools: # list of all tools available for the agent
   - chain_tool
   - image_generation_tool
 action_plans: # list of all action plans available for the meta agent
-  '1':
-    name: ''
+  "1":
+    name: ""
     description: Gather new information and summarize
     actions:
       - - pdf_tool
         - entertainer_tool
       - - expert_tool
-  '2':
-    name: ''
+  "2":
+    name: ""
     description: Sufficient information in chat history, answer question
     actions:
       - - memory
         - expert_tool
-  '3':
-    name: ''
+  "3":
+    name: ""
     description: Use information from chat history to gather new information, then summarize
     actions:
       - - memory
         - pdf_tool
       - - expert_tool
-  '4':
-    name: ''
+  "4":
+    name: ""
     description: Clarification for ambiguous questions
     actions:
       - - clarify_tool
-  '5':
-    name: 'Nested Chain'
+  "5":
+    name: "Nested Chain"
     description: User requests expert advice and asks to consider multiple options
     actions:
       - - chain_tool
-  '6':
-    name: ''
+  "6":
+    name: ""
     description: Generate an image
     actions:
       - - image_generation_tool

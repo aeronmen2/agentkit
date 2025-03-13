@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = f"/api/{API_VERSION}"
     PROJECT_NAME: str
     ENABLE_LLM_CACHE: bool = False
-    OPENAI_API_KEY: str
+    OPENAI_API_KEY: str = ""
     OPENAI_ORGANIZATION: Optional[str] = None
     OPENAI_API_BASE: Optional[str] = None
     DATABASE_USER: str
@@ -187,6 +187,13 @@ class Settings(BaseSettings):
     SQL_TOOL_DB_INFO_PATH: str
     SQL_TOOL_DB_URI: str
     SQL_TOOL_DB_OVERWRITE_ON_START: bool = True
+    
+    ################################
+    # Ollama configuration
+    ################################
+    OLLAMA_URL: str
+    OLLAMA_DEFAULT_MODEL: str
+    OLLAMA_ENABLED: bool
 
     @validator(
         "SQL_TOOL_DB_URI",
