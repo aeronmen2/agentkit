@@ -4,12 +4,18 @@
  */
 await import('./src/env.mjs');
 import withBundleAnalyzer from '@next/bundle-analyzer';
+import withPWA from 'next-pwa';
 
 // Only run bundle analyzer when ANALYZE is set to true
 const bundleAnalyzerConfig = {
   enabled: process.env.ANALYZE === 'true',
 };
 
+// PWA Configuration
+const pwaConfig = {
+  dest: 'public', // Directory where the service worker will be generated
+  disable: process.env.NODE_ENV === 'development', // Disable PWA in development
+};
 
 /** @type {import("next").NextConfig} */
 const config = {
@@ -47,5 +53,5 @@ const config = {
     { source: '/ping', destination: '/api/health' },
   ],
 };
-// Run the app through the bundle analyzer wrapper (which is an optional argument)
-export default withBundleAnalyzer(bundleAnalyzerConfig)(config);
+// Combine both withBundleAnalyzer and withPWA
+export default withBundleAnalyzer(bundleAnalyzerConfig)(withPWA(pwaConfig)(config));
