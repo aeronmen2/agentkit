@@ -31,6 +31,51 @@ const ConversationView = () => {
     ? messageStore.messageList.filter((message) => message.conversationId === currentConversation.id)
     : []
   const lastMessage = last(messageList)
+  const sendNotification = async () => {
+    if (!("Notification" in window)) {
+      console.error("Ce navigateur ne prend pas en charge les notifications")
+      return
+    }
+
+    try {
+      if (Notification.permission === "granted") {
+        new Notification("Chat terminé", {
+          body: "La réponse à votre question est prête !",
+          icon: "/logo.png",
+          tag: "chat-response",
+          requireInteraction: true,
+        })
+      } else if (Notification.permission !== "denied") {
+        const permission = await Notification.requestPermission()
+
+        if (permission === "granted") {
+          console.log("Permission granted, sending notification")
+          new Notification("Chat terminé", {
+            body: "La réponse à votre question est prête !",
+            icon: "/logo.png",
+            tag: "chat-response",
+            requireInteraction: true,
+          })
+        } else {
+          console.warn("Notification permission denied")
+        }
+      } else {
+        console.warn("Notifications were previously denied")
+      }
+    } catch (error) {
+      console.error("Error sending notification:", error)
+    }
+  }
+
+  // Add this useEffect hook to request permission on component mount
+  useEffect(() => {
+    // Request permission when the component loads
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission().then((permission) => {
+        console.log(`Initial notification permission: ${permission}`)
+      })
+    }
+  }, [])
 
   useEffect(() => {
     messageStore.messageList.map((message) => {
@@ -201,6 +246,7 @@ const ConversationView = () => {
         status: "DONE",
       })
 
+      await sendNotification()
       messageList.push(message)
     } catch (error: any) {
       // Handle any errors that occurred during the fetch request
@@ -232,7 +278,7 @@ const ConversationView = () => {
         </div>
       </div>
 
-      <div className="absolute bottom-0 flex w-full flex-row items-center justify-center gap-csm !bg-neutral px-8 py-csm xl:px-16 dark:!bg-base-200">
+      <div className="absolute bottom-0 flex w-full flex-row items-center justify-center gap-csm !bg-neutral px-8 py-csm dark:!bg-base-200 xl:px-16">
         <ClearConversationButton />
         <MessageTextarea disabled={lastMessage?.status === "LOADING"} sendMessage={sendMessageToCurrentConversation} />
         <CancelMessageButton lastMessage={lastMessage} />
