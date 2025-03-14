@@ -187,13 +187,6 @@ class Settings(BaseSettings):
     SQL_TOOL_DB_INFO_PATH: str
     SQL_TOOL_DB_URI: str
     SQL_TOOL_DB_OVERWRITE_ON_START: bool = True
-    
-    ################################
-    # Ollama configuration
-    ################################
-    OLLAMA_URL: str
-    OLLAMA_DEFAULT_MODEL: str
-    OLLAMA_ENABLED: bool
 
     @validator(
         "SQL_TOOL_DB_URI",
