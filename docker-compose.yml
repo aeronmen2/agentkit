@@ -30,15 +30,13 @@ services:
     env_file: "frontend/.env"
     depends_on:
       - fastapi_server
-    labels:
-      - "prometheus-job=nextjs"
 
   redis_server:
     image: redis:alpine
     container_name: redis_server
     restart: always
     ports:
-      - 6379:6379 # Remove this on production
+      - 6379:6379
     expose:
       - 6379
     env_file: ".env"
