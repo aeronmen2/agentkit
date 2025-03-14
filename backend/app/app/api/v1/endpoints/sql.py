@@ -8,10 +8,13 @@ from app.schemas.response_schema import IGetResponseBase, create_response
 from app.schemas.tool_schemas.sql_tool_schema import ExecutionResult
 from app.utils.sql import is_sql_query_safe
 
+from app.utils.utils import trace
+
 router = APIRouter()
 
 
 @router.get("/execute")
+@trace
 @cache(expire=600)  # -> Bug on POST requests https://github.com/long2ice/fastapi-cache/issues/113
 async def execute_sql(
     statement: str,

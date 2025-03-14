@@ -18,10 +18,12 @@ from app.utils.streaming.callbacks.stream import AsyncIteratorCallbackHandler
 from app.utils.streaming.helpers import event_generator, handle_exceptions
 from app.utils.streaming.StreamingJsonListResponse import StreamingJsonListResponse
 
+from app.utils.utils import trace
+
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-
+@trace
 def get_meta_agent_with_api_key(
     chat: IChatQuery,
 ) -> AgentExecutor:
