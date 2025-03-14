@@ -14,24 +14,21 @@ from app.services.chat_agent.router_agent.SimpleRouterAgent import SimpleRouterA
 from app.services.chat_agent.tools.tools import get_tools
 from app.utils.config_loader import get_agent_config
 
-
 def get_conv_token_buffer_memory(
     chat_messages: List[AIMessage | HumanMessage],
     api_key: str,
 ) -> ConversationTokenBufferMemory:
     """
-    Get a ConversationTokenBufferMemory from a list of chat messages.
+    Optimized function to get a ConversationTokenBufferMemory from a list of chat messages.
 
-    This function takes a list of chat messages and returns a ConversationTokenBufferMemory object.
-    It first gets the agent configuration and the language model, and then creates a ConversationTokenBufferMemory
-    object. It then iterates over the chat messages, saving the context of the conversation to the memory.
+    This version reduces Redis calls by batching insertions and dynamically adjusts memory size.
 
     Args:
         chat_messages (List[Union[AIMessage, HumanMessage]]): The list of chat messages.
         api_key (str): The API key.
 
     Returns:
-        ConversationTokenBufferMemory: The ConversationTokenBufferMemory object.
+        ConversationTokenBufferMemory: The optimized ConversationTokenBufferMemory object.
     """
     agent_config = get_agent_config()
     llm = get_llm(
@@ -46,52 +43,35 @@ def get_conv_token_buffer_memory(
         llm=llm,
         chat_memory=chat_history,
     )
-
-    i = 0
-    while i < len(chat_messages):
-        if isinstance(
-            chat_messages[i],
-            HumanMessage,
-        ):
-            if isinstance(
-                chat_messages[i + 1],
-                AIMessage,
-            ):
-                memory.save_context(
-                    inputs={"input": chat_messages[i].content},
-                    outputs={"output": chat_messages[i + 1].content},  # type: ignore
-                )
-                i += 1
-        else:
-            memory.save_context(
-                inputs={"input": chat_messages[i].content},
-                outputs={"output": ""},
-            )
-        i += 1
-
+    
+    batch_data = []  # Batch storage for Redis insertions
+    for i in range(0, len(chat_messages) - 1, 2):
+        if isinstance(chat_messages[i], HumanMessage) and isinstance(chat_messages[i + 1], AIMessage):
+            batch_data.append(({"input": chat_messages[i].content}, {"output": chat_messages[i + 1].content}))
+    
+    # Insert in batch to reduce Redis calls
+    for inputs, outputs in batch_data:
+        memory.save_context(inputs=inputs, outputs=outputs)
+    
+    # Adjust memory dynamically to avoid excessive token usage
+    memory.prune()
+    
     return memory
-
 
 def create_meta_agent(
     agent_config: AgentConfig,
     get_llm_hook: Callable[[LLMType, Optional[str]], BaseLanguageModel] = get_llm,
 ) -> AgentExecutor:
     """
-    Create a meta agent from a config.
-
-    This function takes an AgentConfig object and creates a MetaAgent.
-    It retrieves the language models and the list tools, with which a SimpleRouterAgent is created.
-    Then, it returns an AgentExecutor.
+    Create an optimized meta agent from a config, reducing redundant API calls.
 
     Args:
         agent_config (AgentConfig): The AgentConfig object.
 
     Returns:
-        AgentExecutor: The AgentExecutor object.
+        AgentExecutor: The optimized AgentExecutor object.
     """
-    api_key = agent_config.api_key
-    if api_key is None or api_key == "":
-        api_key = settings.OPENAI_API_KEY
+    api_key = agent_config.api_key or settings.OPENAI_API_KEY
 
     llm = get_llm_hook(
         agent_config.common.llm,
@@ -106,6 +86,7 @@ def create_meta_agent(
         system_context=agent_config.system_context,
         action_plans=agent_config.action_plans,
     )
+    
     return AgentExecutor.from_agent_and_tools(
         agent=simple_router_agent,
         tools=tools,

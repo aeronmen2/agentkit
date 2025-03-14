@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # mypy: disable-error-code="attr-defined"
+import asyncpg
 from fastapi import APIRouter
 from fastapi_cache.decorator import cache
 
@@ -10,6 +11,20 @@ from app.utils.sql import is_sql_query_safe
 
 router = APIRouter()
 
+# Création d'un pool de connexions global
+async def init_db_pool():
+    return await asyncpg.create_pool(
+        dsn=sql_tool_db.dsn,
+        min_size=1,
+        max_size=10,
+    )
+
+db_pool = None
+
+@router.on_event("startup")
+async def startup_event():
+    global db_pool
+    db_pool = await init_db_pool()
 
 @router.get("/execute")
 @cache(expire=600)  # -> Bug on POST requests https://github.com/long2ice/fastapi-cache/issues/113
@@ -23,7 +38,7 @@ async def execute_sql(
             data=None,
             meta={},
         )
-    if sql_tool_db is None:
+    if db_pool is None:
         return create_response(
             message="SQL query execution is disabled",
             data=None,
@@ -31,20 +46,14 @@ async def execute_sql(
         )
 
     try:
-        (
-            columns,
-            rows,
-        ) = sql_tool_db.execute(statement)
+        async with db_pool.acquire() as connection:
+            async with connection.transaction():
+                prepared_stmt = await connection.prepare(statement)
+                rows = await prepared_stmt.fetch()
+                columns = [desc[0] for desc in prepared_stmt.get_attributes()]
+
         execution_result = ExecutionResult(
-            raw_result=[
-                dict(
-                    zip(
-                        columns,
-                        row,
-                    )
-                )
-                for row in rows
-            ],
+            raw_result=[dict(zip(columns, row)) for row in rows],
             affected_rows=None,
             error=None,
         )
