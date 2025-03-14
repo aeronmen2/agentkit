@@ -1,14 +1,10 @@
 name: tests-backend
-
-on:
-  pull_request:
-    branches:
-      - '**'
+on: [pull_request]
 
 jobs:
   tests-backend:
     name: tests-backend
-    runs-on: Linux
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -17,7 +13,15 @@ jobs:
       - name: Set up Python 3.10
         uses: actions/setup-python@v3
         with:
-          python-version: '3.10'
+          python-version: "3.10"
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: backend/app/.venv
+          key: ${{ runner.os }}-python-${{ hashFiles('backend/app/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-
 
       - name: Create empty .env file
         run: touch .env
@@ -28,5 +32,4 @@ jobs:
 
       - name: Run tests
         run: |
-          source backend/app/.venv/bin/activate
-          make test
+          . backend/app/.venv/bin/activate && make test
