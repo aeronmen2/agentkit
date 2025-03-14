@@ -4,7 +4,7 @@ on: [pull_request]
 jobs:
   tests-backend:
     name: tests-backend
-    runs-on: Linux
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
