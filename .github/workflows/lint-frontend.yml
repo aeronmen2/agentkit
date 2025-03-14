@@ -1,10 +1,5 @@
-
 name: lint-frontend
-
-on:
-  pull_request:
-    branches:
-      - '**'
+on: [pull_request]
 
 defaults:
   run:
